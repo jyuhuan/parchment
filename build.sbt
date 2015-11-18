@@ -29,9 +29,9 @@ libraryDependencies += "edu.stanford.nlp" % "stanford-corenlp" % "3.5.2"
 libraryDependencies += "edu.stanford.nlp" % "stanford-corenlp" % "3.5.2" classifier "models"
 
 resolvers += Resolver.sonatypeRepo("snapshots")
-libraryDependencies += "me.yuhuan" %% "marauder" % "0.0.4-SNAPSHOT"
-libraryDependencies += "me.yuhuan" %% "ycoll" % "0.0.5-SNAPSHOT"
-
+libraryDependencies += "me.yuhuan" %% "marauder"               % "0.0.4-SNAPSHOT"
+libraryDependencies += "me.yuhuan" %% "reparo"                 % "0.0.0-SNAPSHOT"
+libraryDependencies += "me.yuhuan" %% "debugview-client-scala" % "0.0.1-SNAPSHOT"
 //endregion
 
 
