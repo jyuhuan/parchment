@@ -144,7 +144,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
     )
   }
 
-  override def toString = tree.label().value()
+  override def toString = s"[${tree.label().value()}]: ${t.tokens.mkString(" ")}"
   override def hashCode() = 17 + root.hashCode() * 23 + tree.hashCode() * 23
   override def equals(that: Any) = that match {
     case that: ConstituentTree => this.root == that.root && this.tree == that.tree
