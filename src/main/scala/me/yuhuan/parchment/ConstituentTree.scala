@@ -99,7 +99,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
     val thatAncestors = that.ancestors
     if (thisAncestors.isEmpty) t
     else if (thatAncestors.isEmpty) that
-    else (thisAncestors.toSet intersect thatAncestors.toSet).last
+    else (thisAncestors.toSeq intersect thatAncestors.toSeq).last
   }
 
   def subsumes(n: ConstituentTree): Boolean = t.tokens.toSet.contains(n)
