@@ -83,13 +83,24 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
 
   def ancestors: Iterable[ConstituentTree] = new Iterable[ConstituentTree] {
     def iterator: Iterator[ConstituentTree] = new Iterator[ConstituentTree] {
-      var cur = t
-      def hasNext: Boolean = cur.hasParent
+      var cur: ConstituentTree = _
+      var first: Boolean = true
+      def hasNext: Boolean = {
+        if (first) true
+        else cur.hasParent
+      }
 
       def next(): ConstituentTree = {
-        val Some(p) = cur.parent
-        cur = p
-        cur
+        if (first) {
+          cur = t
+          first = false
+          cur
+        }
+        else {
+          val Some(p) = cur.parent
+          cur = p
+          cur
+        }
       }
     }
   }
@@ -144,7 +155,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
     )
   }
 
-  override def toString = s"[${tree.label().value()}]: ${t.tokens.mkString(" ")}"
+  override def toString = tree.label().value()
   override def hashCode() = 17 + root.hashCode() * 23 + tree.hashCode() * 23
   override def equals(that: Any) = that match {
     case that: ConstituentTree => this.root == that.root && this.tree == that.tree
