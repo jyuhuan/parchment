@@ -165,7 +165,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
 
 object ConstituentTree {
   /**
-   * Creates a wrapped tree of the Stanford constituent parse tree.
+   * Creates a wrapped version of the Stanford constituent parse tree.
    * @note Will re-index leaves.
    * @param _tree Root stanford [[Tree]] node.
    * @return
@@ -174,6 +174,23 @@ object ConstituentTree {
     _tree.indexLeaves(true)
     new ConstituentTree(_tree, _tree)
   }
+
+  /**
+   * Creates a wrapped version of the Stanford constituent parse tree from bracketed string
+   * representation of the parse tree.
+   * @param s A bracketed string representation like the following:
+   *
+   *             (ROOT
+   *               (S
+   *                 (NP (PRP$ My) (NN dog))
+   *                 (ADVP (RB also))
+   *                 (VP (VBZ likes)
+   *                   (S
+   *                     (VP (VBG eating)
+   *
+   * @return The wrapped [[ConstituentTree]]
+   */
+  def ofBracketedString(s: String) = ConstituentTree(Tree.valueOf(s))
 
   implicit object StanfordTreeStateSpace extends StateSpace[ConstituentTree] {
     def succ(s: ConstituentTree): Seq[ConstituentTree] = s.children
