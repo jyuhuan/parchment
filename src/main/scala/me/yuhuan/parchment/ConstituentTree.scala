@@ -54,8 +54,8 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
   def leftSibling: Option[ConstituentTree] = leftSiblings.lastOption
   def rightSibling: Option[ConstituentTree] = rightSiblings.headOption
 
-  def leafBefore: Option[ConstituentTree] = leftSibling.flatMap(_.lastToken)
-  def leafAfter: Option[ConstituentTree] = rightSibling.flatMap(_.headToken)
+  def tokenBefore: Option[ConstituentTree] = leftSibling.flatMap(_.lastToken)
+  def tokenAfter: Option[ConstituentTree] = rightSibling.flatMap(_.headToken)
 
   def rightMost(p: ConstituentTree => Boolean): Option[ConstituentTree] = {
     def RightMostStateSpace: StateSpace[ConstituentTree] = new StateSpace[ConstituentTree] {
@@ -67,7 +67,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
 
   def rightAdjacentNodes: Iterable[ConstituentTree] = new Iterable[ConstituentTree] {
     def iterator: Iterator[ConstituentTree] = new Iterator[ConstituentTree] {
-      var cur = t.leafAfter
+      var cur = t.tokenAfter
       def hasNext: Boolean = cur match {
         case Some(c) => !t.parent.contains(c)
         case None => false
@@ -99,7 +99,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
     val thatAncestors = that.ancestors
     if (thisAncestors.isEmpty) t
     else if (thatAncestors.isEmpty) that
-    else (thisAncestors.toSet intersect thatAncestors.toSet).head
+    else (thisAncestors.toSet intersect thatAncestors.toSet).last
   }
 
   def subsumes(n: ConstituentTree): Boolean = t.tokens.toSet.contains(n)
