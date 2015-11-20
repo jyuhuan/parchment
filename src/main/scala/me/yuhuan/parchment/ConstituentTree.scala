@@ -1,5 +1,6 @@
 package me.yuhuan.parchment
 
+import edu.stanford.nlp._
 import edu.stanford.nlp.ling.HasIndex
 import edu.stanford.nlp.trees._
 import me.yuhuan.marauder._
@@ -116,13 +117,27 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
   def subsumes(n: ConstituentTree): Boolean = t.tokens.toSet.contains(n)
 
 
-  def syntacticHead(implicit hf: HeadFinder): Option[ConstituentTree] = {
+  def syntacticHead: Option[ConstituentTree] = {
+    val hf = new CollinsHeadFinder
     val h = t.tree.headTerminal(hf)
     if (h != null) Some(new ConstituentTree(t.root, h)) else None
   }
 
-  def semanticHead(implicit shf: SemanticHeadFinder): Option[ConstituentTree] = {
+  def syntacticPreHead: Option[ConstituentTree] = {
+    val hf = new CollinsHeadFinder
+    val h = t.tree.headPreTerminal(hf)
+    if (h != null) Some(new ConstituentTree(t.root, h)) else None
+  }
+
+  def semanticHead: Option[ConstituentTree] = {
+    val shf = new SemanticHeadFinder
     val sh = t.tree.headTerminal(shf)
+    if (sh != null) Some(new ConstituentTree(t.root, sh)) else None
+  }
+
+  def semanticPreHead: Option[ConstituentTree] = {
+    val shf = new SemanticHeadFinder
+    val sh = t.tree.headPreTerminal(shf)
     if (sh != null) Some(new ConstituentTree(t.root, sh)) else None
   }
 
@@ -135,6 +150,26 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
       val ts = tokenIndices.map(i => t.tokens(i))
       nonterminalThatSubsumes(ts)
     }
+  }
+
+  def entityThatSubsumesTokens(tokenIndices: Range): Option[ConstituentTree] = {
+    val u = t.nonterminalThatSubsumesTokens(tokenIndices)
+
+    def isWantedNonterminal(n: ConstituentTree): Boolean = {
+      val conditions = Seq(
+        Set('V') contains n.label(0),
+        Set("WHNP", "NP") contains n.label
+      )
+      conditions contains true
+    }
+
+    def go(t: ConstituentTree): Option[ConstituentTree] = {
+      if (isWantedNonterminal(u)) Some(u)
+      else (u.syntacticPreHead ++ u.parent ++ u.parent.flatMap(_.syntacticPreHead)).find(x => isWantedNonterminal(x))
+    }
+
+    val result = go(u)
+    result.flatMap(x => if (x.label == "VP") x.syntacticPreHead else Some(x))
   }
 
   def belongsToNullCategory: Boolean = {
