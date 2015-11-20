@@ -158,7 +158,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
     def isWantedNonterminal(n: ConstituentTree): Boolean = {
       val conditions = Seq(
         Set('V') contains n.label(0),
-        Set("WHNP", "NP") contains n.label
+        Set("WHNP", "NP", "SBAR") contains n.label
       )
       conditions contains true
     }
