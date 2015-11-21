@@ -185,10 +185,12 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
   }
 
   def pathBetween(i: ConstituentTree, j: ConstituentTree): Path[ConstituentTree, String] = {
-    GraphSearch.depthFirstWithAction(i, (x: ConstituentTree) => x == j)(
+    GraphSearch.breadthFirstWithAction(i, (x: ConstituentTree) => x == j)(
       ConstituentTree.TreeNodeStateSpaceWithAction
     )
   }
+
+  def str = tree.label().value() + tokens.mkString(" ")
 
   override def toString = tree.label().value()
   override def hashCode() = 17 + root.hashCode() * 23 + tree.hashCode() * 23
