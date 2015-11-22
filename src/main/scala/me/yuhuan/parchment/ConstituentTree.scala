@@ -30,7 +30,11 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
   def headToken: Option[ConstituentTree] = tokens.headOption
   def lastToken: Option[ConstituentTree] = tokens.lastOption
 
-  def index: Int = t.tree.label().asInstanceOf[HasIndex].index()
+  def index: Int = {
+    if (!t.isToken) throw new Exception("You can't expect non-terminals to have indices, can you?")
+    else t.tree.label().asInstanceOf[HasIndex].index()
+  }
+
   def tokenIndices: Seq[Int] = t.tokens.map(_.index)
 
   def tokenRange: Range = {
@@ -114,7 +118,14 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
     else (thisAncestors.toSeq intersect thatAncestors.toSeq).head
   }
 
-  def subsumes(n: ConstituentTree): Boolean = t.tokens.toSet.contains(n)
+  def subsumes(n: ConstituentTree): Boolean = {
+    val Some(head1) = t.headToken
+    val Some(head2) = n.headToken
+    val Some(last1) = t.lastToken
+    val Some(last2) = n.lastToken
+
+    head1.index <= head2.index && last2.index <= last1.index
+  }
 
 
   def syntacticHead: Option[ConstituentTree] = {
