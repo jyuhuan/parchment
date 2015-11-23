@@ -32,6 +32,11 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
   def headToken: Option[ConstituentTree] = tokens.headOption
   def lastToken: Option[ConstituentTree] = tokens.lastOption
 
+  /**
+   * The index in the whole sentence (with ROOT at 0).
+   * Notice that, even if `this` is a constituent that covers only a substring of the whole
+   * sentence, the index will still be with respect to the whole sentence.
+   */
   def index: Int = {
     if (!t.isToken) throw new Exception("You can't expect non-terminals to have indices, can you?")
     else t.tree.label().asInstanceOf[HasIndex].index()
@@ -61,8 +66,17 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
   def leftSibling: Option[ConstituentTree] = leftSiblings.lastOption
   def rightSibling: Option[ConstituentTree] = rightSiblings.headOption
 
-  def tokenBefore: Option[ConstituentTree] = leftSibling.flatMap(_.lastToken)
-  def tokenAfter: Option[ConstituentTree] = rightSibling.flatMap(_.headToken)
+  def tokenBefore: Option[ConstituentTree] = t.headToken.flatMap { ht =>
+    val i = ht.index - 2
+    if (i < 0 || i >= t.root.tokens.length) None
+    else Some(t.root.tokens(i))
+  }
+
+  def tokenAfter: Option[ConstituentTree] = t.lastToken.flatMap { ht =>
+    val i = ht.index
+    if (i < 0 || i >= t.root.tokens.length) None
+    else Some(t.root.tokens(i))
+  }
 
   def rightMost(p: ConstituentTree => Boolean): Option[ConstituentTree] = {
     def RightMostStateSpace: StateSpace[ConstituentTree] = new StateSpace[ConstituentTree] {
@@ -188,7 +202,7 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
     }
 
     val result = go(u)
-    result.flatMap(x => if (x.label == "VP") x.syntacticPreHead else Some(x))
+    result.flatMap(x => if (x.label == "VP") x.semanticHead else Some(x))
           .flatMap(x => if (x.label == "NP") biggerProjectionOf(x) else Some(x))
   }
 
