@@ -3,6 +3,7 @@ package me.yuhuan.parchment
 import edu.stanford.nlp.ling._
 import edu.stanford.nlp.parser.{nndep => s}
 import edu.stanford.nlp.tagger.maxent.MaxentTagger
+import me.yuhuan.parchment.DependencyTree._
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import me.yuhuan.parchment.JavaConversions._
@@ -19,7 +20,7 @@ object DependencyParser {
     val taggedWords = tagger.tagSentence(javaListOfHasWords)
     val parse = parser.predict(taggedWords)
     parse.typedDependencies.map(d => d.gov() -> d.dep())
-    new DependencyTree(hasWords.map(_.word()), parse.typedDependencies.toSeq)
+    new DependencyTree(hasWords.map(_.word()), parse.typedDependencies.map(td => DependencyRelation(td.gov.index, td.dep.index, td.reln)).toSeq)
   }
 
   def parse(tokens: Seq[String]): DependencyTree = {

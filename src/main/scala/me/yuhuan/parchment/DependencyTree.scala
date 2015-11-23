@@ -3,6 +3,7 @@ package me.yuhuan.parchment
 import edu.stanford.nlp.international._
 import edu.stanford.nlp.ling._
 import edu.stanford.nlp.trees._
+import me.yuhuan.parchment.DependencyTree._
 import me.yuhuan.reparo.Graph
 import me.yuhuan.reparo.mut.AdjacencyMapGraph
 import me.yuhuan.marauder._
@@ -10,9 +11,9 @@ import me.yuhuan.marauder._
 /**
  * Created by Yuhuan Jiang (jyuhuan@gmail.com) on 11/17/15.
  */
-class DependencyTree(val tokens: Seq[String], dependencies: Seq[TypedDependency]) {
-  private val edges: Seq[(Int, Int, GrammaticalRelation)] = dependencies.map { ds => {
-    (ds.gov().index, ds.dep().index, ds.reln())
+class DependencyTree(val tokens: Seq[String], dependencies: Seq[DependencyRelation]) {
+  private val edges: Seq[(Int, Int, GrammaticalRelation)] = dependencies.map { case DependencyRelation(f, t, r) => {
+    (f, t, r)
   }}
 
   private val nodes: Seq[(Int, String)] = ("ROOT" +: tokens).zipWithIndex.map{case (t, i) => i -> t}
@@ -20,7 +21,9 @@ class DependencyTree(val tokens: Seq[String], dependencies: Seq[TypedDependency]
   private val g: AdjacencyMapGraph[Int, String, GrammaticalRelation] = AdjacencyMapGraph(nodes: _*)(edges: _*)
 
 
-  def relations: Seq[(Int, Int, GrammaticalRelation)] = edges
+  def relations: Seq[DependencyRelation] = edges.map { case (i, j, gr) =>
+    DependencyRelation(i, j, gr)
+  }
 
   def pathBetween(tokenIdxI: Int, tokenIdxJ: Int): Path[Int, GrammaticalRelation] = {
     g.pathBetween(tokenIdxI, tokenIdxJ)
@@ -54,5 +57,22 @@ class DependencyTree(val tokens: Seq[String], dependencies: Seq[TypedDependency]
     GraphSearch.depthFirstWithLazyAction(tokenIdxI, (idx: Int) => idx == tokenIdxJ)(StateSpace)
   }
 
+}
 
+object DependencyTree {
+
+  case class DependencyRelation(from: Int, to: Int, relation: GrammaticalRelation)
+
+  def parseRelation(s: String): DependencyRelation = {
+    val parts = s.split("""\|\|\|""")
+    val i = parts(0).toInt
+    val j = parts(1).toInt
+    val r = GrammaticalRelation.valueOf(Language.UniversalEnglish, parts(2))
+    DependencyRelation(i, j, r)
+  }
+
+  def ofString(s: String, tokens: Seq[String]): DependencyTree = {
+    val rels = s.split('\n').map(parseRelation)
+    new DependencyTree(tokens, rels)
+  }
 }
