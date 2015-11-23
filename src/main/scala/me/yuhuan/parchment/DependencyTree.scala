@@ -19,6 +19,9 @@ class DependencyTree(val tokens: Seq[String], dependencies: Seq[TypedDependency]
 
   private val g: AdjacencyMapGraph[Int, String, GrammaticalRelation] = AdjacencyMapGraph(nodes: _*)(edges: _*)
 
+
+  def relations: Seq[(Int, Int, GrammaticalRelation)] = edges
+
   def pathBetween(tokenIdxI: Int, tokenIdxJ: Int): Path[Int, GrammaticalRelation] = {
     g.pathBetween(tokenIdxI, tokenIdxJ)
   }
