@@ -9,22 +9,24 @@ import scala.collection.JavaConversions._
 /**
   * @author Yuhuan Jiang (jyuhuan@gmail.com).
   */
-class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
+class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
   def label: String = t.tree.label().value()
 
   def parent: Option[ConstituentTree] = {
-    val p = t.tree.parent(t.root)
-    if (p != null) Some(new ConstituentTree(t.root, p)) else None
+    val p = t.tree.parent(t._root)
+    if (p != null) Some(new ConstituentTree(t._root, p)) else None
   }
 
-  def children: Seq[ConstituentTree] = t.tree.children().map(c => new ConstituentTree(t.root, c))
+  def children: Seq[ConstituentTree] = t.tree.children().map(c => new ConstituentTree(t._root, c))
+
+  def root: ConstituentTree = new ConstituentTree(_root, _root)
 
   def isToken: Boolean = t.tree.isLeaf
   def isNonterminal = !isToken
   def hasParent: Boolean = parent.nonEmpty
   def hasNoParent = !hasParent
 
-  def tokens: Seq[ConstituentTree] = t.tree.getLeaves[Tree].map(l => new ConstituentTree(t.root, l))
+  def tokens: Seq[ConstituentTree] = t.tree.getLeaves[Tree].map(l => new ConstituentTree(t._root, l))
   def tokenLabels = tokens.map(_.label)
 
   def headToken: Option[ConstituentTree] = tokens.headOption
@@ -131,25 +133,25 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
   def syntacticHead: Option[ConstituentTree] = {
     val hf = new CollinsHeadFinder
     val h = t.tree.headTerminal(hf)
-    if (h != null) Some(new ConstituentTree(t.root, h)) else None
+    if (h != null) Some(new ConstituentTree(t._root, h)) else None
   }
 
   def syntacticPreHead: Option[ConstituentTree] = {
     val hf = new CollinsHeadFinder
     val h = t.tree.headPreTerminal(hf)
-    if (h != null) Some(new ConstituentTree(t.root, h)) else None
+    if (h != null) Some(new ConstituentTree(t._root, h)) else None
   }
 
   def semanticHead: Option[ConstituentTree] = {
     val shf = new SemanticHeadFinder
     val sh = t.tree.headTerminal(shf)
-    if (sh != null) Some(new ConstituentTree(t.root, sh)) else None
+    if (sh != null) Some(new ConstituentTree(t._root, sh)) else None
   }
 
   def semanticPreHead: Option[ConstituentTree] = {
     val shf = new SemanticHeadFinder
     val sh = t.tree.headPreTerminal(shf)
-    if (sh != null) Some(new ConstituentTree(t.root, sh)) else None
+    if (sh != null) Some(new ConstituentTree(t._root, sh)) else None
   }
 
   def nonterminalThatSubsumes(nodes: Seq[ConstituentTree]): ConstituentTree = nodes.reduce(_ lowestCommonAncestor _)
@@ -174,6 +176,12 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
       conditions contains true
     }
 
+    def biggerProjectionOf(NP: ConstituentTree): Option[ConstituentTree] = {
+      require(NP.label == "NP")
+      if (!NP.parent.exists(_.label == "NP")) Some(NP)
+      else NP.parent.flatMap(biggerProjectionOf)
+    }
+
     def go(t: ConstituentTree): Option[ConstituentTree] = {
       if (isWantedNonterminal(u)) Some(u)
       else (u.syntacticPreHead ++ u.parent ++ u.parent.flatMap(_.syntacticPreHead)).find(x => isWantedNonterminal(x))
@@ -181,6 +189,7 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
 
     val result = go(u)
     result.flatMap(x => if (x.label == "VP") x.syntacticPreHead else Some(x))
+          .flatMap(x => if (x.label == "NP") biggerProjectionOf(x) else Some(x))
   }
 
   def belongsToNullCategory: Boolean = {
@@ -204,9 +213,9 @@ class ConstituentTree private[parchment](val root: Tree, val tree: Tree) { t =>
   def str = s"[${tree.label.value}]${tokens.mkString(" ")}"
 
   override def toString = tree.label.value
-  override def hashCode() = 17 + root.hashCode() * 23 + tree.hashCode() * 23
+  override def hashCode() = 17 + _root.hashCode() * 23 + tree.hashCode() * 23
   override def equals(that: Any) = that match {
-    case that: ConstituentTree => this.root == that.root && this.tree == that.tree
+    case that: ConstituentTree => this._root == that._root && this.tree == that.tree
     case _ => throw new Exception("You can't compare a pig with a cat, can you? ")
   }
 }
