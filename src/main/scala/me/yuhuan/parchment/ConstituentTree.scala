@@ -202,7 +202,7 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
     }
 
     val result = go(u)
-    result.flatMap(x => if (x.label == "VP") x.semanticHead else Some(x))
+    result.flatMap(x => if (x.label == "VP") x.semanticPreHead else Some(x))
           .flatMap(x => if (x.label == "NP") biggerProjectionOf(x) else Some(x))
   }
 

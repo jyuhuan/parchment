@@ -1,6 +1,6 @@
 name := "parchment"
 
-version := "0.0.13-SNAPSHOT"
+version := "0.0.15-SNAPSHOT"
 
 organization := "me.yuhuan"
 
