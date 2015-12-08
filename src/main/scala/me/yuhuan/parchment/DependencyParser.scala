@@ -12,22 +12,36 @@ import me.yuhuan.parchment.JavaConversions._
   * @author Yuhuan Jiang (jyuhuan@gmail.com).
   */
 object DependencyParser {
-  val tagger = new MaxentTagger("edu/stanford/nlp/models/pos-tagger/english-left3words/english-left3words-distsim.tagger")
-  val parser = s.DependencyParser.loadFromModelFile(s.DependencyParser.DEFAULT_MODEL)
+
+  val parser = ConstituentParser.parser.treebankLanguagePack().grammaticalStructureFactory()
+
+
+  def parseFromConstituentTree(constituentTree: ConstituentTree): DependencyTree = {
+    new DependencyTree(
+      constituentTree.tokens.map(_.label),
+      parser.newGrammaticalStructure(constituentTree.tree)
+            .typedDependenciesCCprocessed()
+            .map(td => DependencyRelation(td.gov.index, td.dep.index, td.reln))
+    )
+  }
+
+  def parse(tokens: Seq[String]): DependencyTree = parseHasWords(StanfordSentence(tokens))
+  def parse(sentence: String): DependencyTree = parseCoreLabels(Tokenizer.tokenizeSentence(sentence))
+
+  def parseCoreLabels(coreLabels: Seq[CoreLabel]): DependencyTree = {
+    parseFromConstituentTree(ConstituentParser.parseCoreLabels(coreLabels))
+  }
 
   def parseHasWords(hasWords: Seq[HasWord]): DependencyTree = {
-    val javaListOfHasWords: java.util.List[HasWord] = hasWords.asJava
-    val taggedWords = tagger.tagSentence(javaListOfHasWords)
-    val parse = parser.predict(taggedWords)
-    parse.typedDependencies.map(d => d.gov() -> d.dep())
-    new DependencyTree(hasWords.map(_.word()), parse.typedDependencies.map(td => DependencyRelation(td.gov.index, td.dep.index, td.reln)).toSeq)
+    parseFromConstituentTree(ConstituentParser.parseHasWords(hasWords))
   }
 
-  def parse(tokens: Seq[String]): DependencyTree = {
-     parseHasWords(StanfordSentence(tokens))
-  }
+}
 
-  def parse(sentence: String): DependencyTree = {
-    parseHasWords(Tokenizer.tokenizeSentence(sentence))
-  }
+object DependencyParserTest extends App {
+  val lexParse = ConstituentParser.parse("My dog also likes eating sausage.")
+
+  val depParse = DependencyParser.parse("My dog also likes eating sausage.")
+
+  val bp = 0
 }
