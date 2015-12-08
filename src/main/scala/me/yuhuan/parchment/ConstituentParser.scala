@@ -13,15 +13,14 @@ import me.yuhuan.parchment.JavaConversions.StanfordSentence
   * @author Yuhuan Jiang (jyuhuan@gmail.com).
   */
 object ConstituentParser {
-  private[parchment] val lexParser =
-    LexicalizedParser.loadModel("edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
+  private[parchment] val parser = LexicalizedParser.loadModel("edu/stanford/nlp/models/lexparser/englishPCFG.ser.gz")
 
   def parse(tokens: Seq[String]): ConstituentTree = parseHasWords(StanfordSentence(tokens))
   def parse(sentence: String): ConstituentTree = parseCoreLabels(Tokenizer.tokenizeSentence(sentence))
 
   def parseCoreLabels(coreLabels: Seq[CoreLabel]): ConstituentTree = {
-    ConstituentTree(lexParser.parse(coreLabels))
+    ConstituentTree(parser.parse(coreLabels))
   }
 
-  def parseHasWords(hasWords: Seq[HasWord]): ConstituentTree = ConstituentTree(lexParser.parse(hasWords))
+  def parseHasWords(hasWords: Seq[HasWord]): ConstituentTree = ConstituentTree(parser.parse(hasWords))
 }
