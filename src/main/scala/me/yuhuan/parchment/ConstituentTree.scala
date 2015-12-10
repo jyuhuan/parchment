@@ -37,10 +37,12 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
    * Notice that, even if `this` is a constituent that covers only a substring of the whole
    * sentence, the index will still be with respect to the whole sentence.
    */
-  def index: Int = {
+  def indexWithRoot: Int = {
     if (!t.isToken) throw new Exception("You can't expect non-terminals to have indices, can you?")
     else t.tree.label().asInstanceOf[HasIndex].index()
   }
+
+  def index = indexWithRoot - 1
 
   /**
     * If the tree looks like:
@@ -71,6 +73,7 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
 
   /**
     * The node obtained by following the children indices in the provided sequence.
+ *
     * @param numPath A sequence of integers each representing the index of the child to follow.
     */
   def followNumPath(numPath: Seq[Int]): Option[ConstituentTree] = {
@@ -111,13 +114,13 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
   def rightSibling: Option[ConstituentTree] = rightSiblings.headOption
 
   def tokenBefore: Option[ConstituentTree] = t.headToken.flatMap { ht =>
-    val i = ht.index - 2
+    val i = ht.indexWithRoot - 2
     if (i < 0 || i >= t.root.tokens.length) None
     else Some(t.root.tokens(i))
   }
 
   def tokenAfter: Option[ConstituentTree] = t.lastToken.flatMap { ht =>
-    val i = ht.index
+    val i = ht.indexWithRoot
     if (i < 0 || i >= t.root.tokens.length) None
     else Some(t.root.tokens(i))
   }
@@ -184,7 +187,7 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
     val Some(last1) = t.lastToken
     val Some(last2) = n.lastToken
 
-    head1.index <= head2.index && last2.index <= last1.index
+    head1.indexWithRoot <= head2.indexWithRoot && last2.indexWithRoot <= last1.indexWithRoot
   }
 
 
