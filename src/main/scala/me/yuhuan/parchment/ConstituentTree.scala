@@ -42,6 +42,50 @@ class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
     else t.tree.label().asInstanceOf[HasIndex].index()
   }
 
+  /**
+    * If the tree looks like:
+    *
+    *           S
+    *          / \
+    *        NP   VP
+    *       / \   / \
+    *     DT  NN V  PP
+    *               / \
+    *              P  NP
+    *
+    * and suppose the current constituent (`this`) is P, then this method should return:
+    * `Seq(1, 1, 0)`
+    */
+  def numPathFrom(node: ConstituentTree): Array[Int] = {
+    var cur = this
+    val result = scala.collection.mutable.ArrayBuffer[Int]()
+    while (cur != node) {
+      val Some(i) = cur.indexInSiblings
+      result += i
+      cur = cur.parent.get
+    }
+    result.reverse.toArray
+  }
+
+  def numPathFromRoot: Array[Int] = numPathFrom(root)
+
+  /**
+    * The node obtained by following the children indices in the provided sequence.
+    * @param numPath A sequence of integers each representing the index of the child to follow.
+    */
+  def followNumPath(numPath: Seq[Int]): Option[ConstituentTree] = {
+    var cur = root
+    try {
+      for (i <- numPath) {
+        cur = cur.children(i)
+      }
+      Some(cur)
+    }
+    catch {
+      case e: Exception => None
+    }
+  }
+
   def tokenIndices: Seq[Int] = t.tokens.map(_.index)
 
   def tokenRange: Range = {
