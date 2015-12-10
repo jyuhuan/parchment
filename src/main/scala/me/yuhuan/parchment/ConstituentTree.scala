@@ -8,6 +8,7 @@ import scala.collection.JavaConversions._
 
 /**
   * @author Yuhuan Jiang (jyuhuan@gmail.com).
+  *         sdaf
   */
 class ConstituentTree private[parchment](val _root: Tree, val tree: Tree) { t =>
   def label: String = t.tree.label().value()
